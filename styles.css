@@ -209,14 +209,19 @@ body {
 
 #registerAccordion .field-row.is-due .field-input {
   display: grid;
-  grid-template-columns: 3fr 2fr;
-  gap: 6px;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 4px;
 }
 
 #registerAccordion #itemDueDate,
 #registerAccordion #itemDueTime {
   width: 100%;
   min-width: 0;
+}
+
+#registerAccordion .field-row.is-due #itemDueDate,
+#registerAccordion .field-row.is-due #itemDueTime {
+  padding: 0 8px;
 }
 
 .field-input input,
