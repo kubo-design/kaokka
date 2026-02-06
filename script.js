@@ -777,10 +777,17 @@ const renderDialogEdit = (item) => {
   }
   const mediaActions = els.itemDialog?.querySelector('.media-actions');
   if (mediaActions) mediaActions.classList.remove('hidden');
+  const currentQty = Number(item.qty) || 1;
+  const qtyOptions = Array.from({ length: 99 }, (_, index) => {
+    const value = index + 1;
+    return `<option value="${value}" ${value === currentQty ? 'selected' : ''}>${value}</option>`;
+  }).join('');
   els.dialogContent.innerHTML = `
     <label class="dialog-field">
       <span>数量</span>
-      <input type="number" min="1" name="editQty" value="${item.qty || 1}" />
+      <select name="editQty" aria-label="数量">
+        ${qtyOptions}
+      </select>
     </label>
     <label class="dialog-field">
       <span>内容</span>

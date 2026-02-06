@@ -88,6 +88,12 @@ body {
   #registerAccordion .place-history {
     font-size: 16px;
   }
+
+  .item-dialog input,
+  .item-dialog select,
+  .item-dialog textarea {
+    font-size: 16px;
+  }
 }
 
 .app-header {
@@ -1132,10 +1138,12 @@ body {
 
 .item-name.priority-high {
   color: #d63a3a;
+  font-weight: 700;
 }
 
 .item-name.priority-mid {
-  color: #7b4fbd;
+  color: #f28c28;
+  font-weight: 700;
 }
 
 .item-name.priority-low {
@@ -1291,7 +1299,7 @@ body {
 
 .dialog-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: 4px;
 }
 
