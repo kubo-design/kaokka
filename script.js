@@ -1189,6 +1189,20 @@ els.registerForm.addEventListener('click', (event) => {
 
 const returnBtn = document.getElementById('returnBtn');
 if (returnBtn) {
+  const updateReturnBtnOffset = () => {
+    const visualViewport = window.visualViewport;
+    if (!visualViewport) return;
+    const keyboardHeight = Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop);
+    const base = 20;
+    const extra = keyboardHeight > 0 ? keyboardHeight + 12 : 0;
+    returnBtn.style.bottom = `${base + extra}px`;
+  };
+
+  updateReturnBtnOffset();
+  window.visualViewport?.addEventListener('resize', updateReturnBtnOffset);
+  window.visualViewport?.addEventListener('scroll', updateReturnBtnOffset);
+  window.addEventListener('resize', updateReturnBtnOffset);
+
   returnBtn.addEventListener('pointerdown', () => {
     suppressDialogClose = true;
     setTimeout(() => {
