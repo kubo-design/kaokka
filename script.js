@@ -1187,6 +1187,13 @@ els.registerForm.addEventListener('click', (event) => {
   }
 });
 
+els.registerForm.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter') return;
+  const el = event.target;
+  if (el instanceof HTMLTextAreaElement) return;
+  event.preventDefault();
+});
+
 const returnBtn = document.getElementById('returnBtn');
 if (returnBtn) {
   const updateReturnBtnOffset = () => {
