@@ -1223,6 +1223,15 @@ if (returnBtn) {
   });
 }
 
+if (els.itemDialog) {
+  els.itemDialog.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    const el = event.target;
+    if (el instanceof HTMLTextAreaElement) return;
+    event.preventDefault();
+  });
+}
+
 els.historyName.addEventListener('change', (event) => {
   if (event.target.value) {
     els.itemName.value = event.target.value;
