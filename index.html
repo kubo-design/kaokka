@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>memor | 買い物リスト</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="logo">
+        <img class="logo-illust" src="kaokka_logo.png" alt="kaokka logo" />
+      </div>
+      <div class="version">ver.1.0.0</div>
+    </header>
+
+    <main>
+      <section class="accordion is-collapsed" id="registerAccordion">
+        <button class="accordion-header" type="button" data-action="toggle-section" aria-expanded="false">
+          <h2>New Item</h2>
+          <span class="accordion-indicator">+</span>
+        </button>
+        <div class="accordion-body" aria-hidden="true">
+          <form id="registerForm" class="card">
+            <div class="field-row" data-name-row>
+              <label class="field-label" for="itemName">何を</label>
+              <div class="field-input name-inline">
+                <input id="itemName" name="itemName" type="text" placeholder="例：牛乳" required />
+                <input class="name-history" list="historyNames" id="historyName" placeholder="履歴" />
+                <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyNames"><span></span></button>
+                <input id="itemQty" name="itemQty" type="number" min="1" max="99" value="1" class="name-qty" aria-label="数量" />
+              </div>
+            </div>
+
+            <div id="specFields" class="field-group">
+              <div class="spec-group" data-spec-group>
+                <div class="field-row" data-spec-row>
+                  <div class="spec-title">
+                    <label class="field-label" for="spec-name-1">仕様・規格 + 内容・備考 ①</label>
+                    <div class="spec-title-actions">
+                      <button type="button" class="ghost-btn spec-add" id="addDetail" data-action="add-spec">＋</button>
+                      <button type="button" class="ghost-btn spec-delete is-hidden" data-action="remove-spec">削除</button>
+                    </div>
+                  </div>
+                  <div class="field-input spec-inline">
+                    <input id="spec-name-1" name="specName" type="text" placeholder="例：サイズ・色" />
+                    <input class="spec-history" list="historyDetails" id="historyDetail-1" placeholder="履歴" />
+                    <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyDetails"><span></span></button>
+                    <select id="spec-unit-1" name="specUnit" aria-label="単位">
+                      <option value="">単位</option>
+                      <option value="mm">mm</option>
+                      <option value="cm">cm</option>
+                      <option value="m">m</option>
+                      <option value="W">W</option>
+                      <option value="g">g</option>
+                      <option value="kg">kg</option>
+                      <option value="ml">ml</option>
+                      <option value="l">l</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-row spec-row">
+                  <label class="field-label" for="spec-text-1"></label>
+                  <div class="field-input">
+                    <textarea id="spec-text-1" name="specText" rows="1" placeholder="内容・備考"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field-row" data-place-row>
+              <label class="field-label" for="itemPlace">どこで</label>
+              <div class="field-input place-inline">
+                <input id="itemPlace" name="itemPlace" type="text" placeholder="例：スーパー" />
+                <input class="place-history" list="historyPlaces" id="historyPlace" placeholder="履歴" />
+                <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyPlaces"><span></span></button>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label class="field-label" for="itemDueDate">いつまで</label>
+              <div class="field-input is-inline">
+                <input id="itemDueDate" name="itemDueDate" type="date" />
+                <input id="itemDueTime" name="itemDueTime" type="time" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <label class="field-label" for="itemUrl">比較URL</label>
+              <div class="field-input">
+                <textarea id="itemUrl" name="itemUrl" rows="2" placeholder="https://"></textarea>
+              </div>
+            </div>
+
+            <div class="field-row" data-image-row>
+              <label class="field-label">イメージ</label>
+              <div class="field-input image-inline">
+                <label class="ghost-btn image-icon-btn" for="registerImageFile" aria-label="ファイルから">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 3v6h6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </label>
+                <input type="file" id="registerImageFile" accept="image/*" multiple hidden />
+                <label class="ghost-btn image-icon-btn" for="registerImagePhoto" aria-label="写真から">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="M3 17l5-5 4 4 3-3 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </label>
+                <input type="file" id="registerImagePhoto" accept="image/*" multiple hidden />
+                <label class="ghost-btn image-icon-btn" for="registerImageCamera" aria-label="カメラから">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-2h4l2 2h4v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </label>
+                <input type="file" id="registerImageCamera" accept="image/*" capture="environment" hidden />
+              </div>
+              <div class="image-filenames-row is-hidden">
+                <div id="registerImageNames" class="image-filenames"></div>
+                <button type="button" class="ghost-btn image-clear" id="registerImageClear">削除</button>
+              </div>
+            </div>
+
+            <div class="register-actions">
+              <select id="prioritySelect" name="priority" class="priority-select" aria-label="優先度">
+                <option value="">優先無</option>
+                <option value="mid">優先中</option>
+                <option value="high">優先高</option>
+              </select>
+              <button class="primary-btn" type="submit">登録</button>
+            </div>
+          </form>
+
+        </div>
+      </section>
+
+      <section class="accordion is-open" id="listAccordion">
+        <button class="accordion-header" type="button" data-action="toggle-section" aria-expanded="true">
+          <h2>List</h2>
+          <span class="accordion-indicator">-</span>
+        </button>
+        <div class="accordion-body" aria-hidden="false">
+          <div class="card">
+            <div class="segmented-row" role="tablist">
+              <div class="segmented segmented-2" aria-label="表示切替">
+                <button class="segment is-active" data-scope="all">すべて</button>
+                <button class="segment" data-scope="place">どこで別</button>
+              </div>
+              <div class="segmented segmented-2" aria-label="並び替え">
+                <button class="segment is-active" data-sort="due">日付順</button>
+                <button class="segment" data-sort="priority">優先度順</button>
+              </div>
+            </div>
+            <div class="list-toolbar"></div>
+            <div class="list-toolbar place-toolbar">
+              <select id="placeFilter" class="place-filter" aria-label="どこでの絞り込み">
+                <option value="all">すべて</option>
+                <option disabled>────────</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="listContainer" class="list-container"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <datalist id="historyNames"></datalist>
+  <datalist id="historyDetails"></datalist>
+  <datalist id="historyPlaces"></datalist>
+
+  <dialog id="itemDialog" class="item-dialog">
+    <form method="dialog" class="dialog-body">
+      <div class="dialog-header">
+        <input id="dialogTitleInput" class="dialog-title-input dialog-title-only" type="text" aria-label="何をを編集" />
+        <button class="icon-btn" value="close">×</button>
+      </div>
+      <div id="dialogContent" class="dialog-content"></div>
+      <div class="dialog-media">
+        <div id="imagePreview" class="media-preview"></div>
+        <div class="media-actions hidden">
+          <label class="ghost-btn image-icon-btn" for="filePicker" aria-label="ファイルから">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 3v6h6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </label>
+          <input type="file" id="filePicker" accept="image/*" multiple hidden />
+          <label class="ghost-btn image-icon-btn" for="imagePicker" aria-label="写真から">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="2" fill="currentColor"/><path d="M3 17l5-5 4 4 3-3 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </label>
+          <input type="file" id="imagePicker" accept="image/*" multiple hidden />
+          <label class="ghost-btn image-icon-btn" for="cameraPicker" aria-label="カメラから">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-2h4l2 2h4v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="13" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+          </label>
+          <input type="file" id="cameraPicker" accept="image/*" capture="environment" hidden />
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="ghost-btn icon-lines" data-action="edit-item"><span></span></button>
+        <button type="button" class="ghost-btn" data-action="delete-item">削除</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="imageViewer" class="image-viewer">
+    <img id="imageViewerImg" class="image-viewer-img" alt="" />
+  </dialog>
+
+  <button type="button" class="return-btn" id="returnBtn" aria-label="リターン">↩</button>
+
+  <script src="script.js"></script>
+</body>
+</html>
