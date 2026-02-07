@@ -178,11 +178,12 @@ const createSpecGroup = (index) => {
   nameInput.name = 'specName';
   nameInput.type = 'text';
   nameInput.placeholder = '例：サイズ・色';
-  const nameHistory = document.createElement('input');
-  nameHistory.className = 'spec-history';
-  nameHistory.setAttribute('list', 'historyDetails');
-  nameHistory.id = `historyDetail-${index}`;
-  nameHistory.placeholder = '履歴';
+  const nameHistory = document.createElement('button');
+  nameHistory.type = 'button';
+  nameHistory.className = 'history-btn';
+  nameHistory.dataset.action = 'open-history';
+  nameHistory.dataset.target = 'historyDetails';
+  nameHistory.textContent = '履歴';
   const nameEditBtn = document.createElement('button');
   nameEditBtn.type = 'button';
   nameEditBtn.className = 'ghost-btn';
@@ -1233,30 +1234,13 @@ const openHistoryPicker = (input) => {
 };
 
 document.addEventListener('pointerdown', (event) => {
-  const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
-  if (!input) return;
-  if (isIOS() && !input.classList.contains('dialog-place-history')) {
-    const row = input.closest('.field-row');
-    const button = row?.querySelector('[data-action="open-history"]');
-    if (button) {
-      event.preventDefault();
-      event.stopPropagation();
-      toggleInlineHistory(button);
-      return;
-    }
-  }
-  openHistoryPicker(input);
-});
-
-els.registerForm.addEventListener('pointerdown', (event) => {
-  if (!isIOS()) return;
-  const input = event.target.closest('.name-history, .spec-history, .place-history');
-  if (!(input instanceof HTMLInputElement)) return;
-  const row = input.closest('.field-row');
-  const button = row?.querySelector('[data-action="open-history"]');
+  const button = event.target.closest('.history-btn, .dialog-place-history');
   if (!button) return;
+  if (button.classList.contains('dialog-place-history')) {
+    openHistoryPicker(button);
+    return;
+  }
   event.preventDefault();
-  event.stopPropagation();
   toggleInlineHistory(button);
 });
 
@@ -1269,7 +1253,7 @@ document.addEventListener('focusin', (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
-  const input = event.target.closest?.('.name-history, .spec-history, .place-history, .dialog-place-history');
+  const input = event.target.closest?.('.dialog-place-history');
   if (!(input instanceof HTMLInputElement)) return;
   event.preventDefault();
 });
