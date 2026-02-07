@@ -1,4 +1,9 @@
 const STORAGE_KEY = 'shopping_items_v1';
+const IMAGE_DB_NAME = 'shopping_images_v1';
+const IMAGE_STORE_NAME = 'images';
+const DAY_MS = 24 * 60 * 60 * 1000;
+const ITEM_EXPIRE_DAYS = 60;
+const EXPIRE_ALERT_DAYS = [3, 1];
 
 const state = {
   items: [],
@@ -16,11 +21,84 @@ let suppressDialogClose = false;
 let registerImages = [];
 let registerImageNames = [];
 let pendingRegisterImages = Promise.resolve();
+let imageDbPromise = null;
 
 const waitForPendingImages = (timeoutMs = 2000) => Promise.race([
   pendingRegisterImages.catch(() => undefined),
   new Promise((resolve) => setTimeout(resolve, timeoutMs)),
 ]);
+
+const openImageDb = () => {
+  if (!('indexedDB' in window)) {
+    return Promise.reject(new Error('IndexedDB not supported'));
+  }
+  if (imageDbPromise) return imageDbPromise;
+  imageDbPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(IMAGE_DB_NAME, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
+        db.createObjectStore(IMAGE_STORE_NAME, { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return imageDbPromise;
+};
+
+const saveImagesToDb = async (dataUrls) => {
+  if (!dataUrls.length) return [];
+  const db = await openImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(IMAGE_STORE_NAME);
+    const ids = dataUrls.map(() => crypto.randomUUID());
+    ids.forEach((id, index) => {
+      const req = store.put({ id, dataUrl: dataUrls[index], createdAt: Date.now() });
+      req.onerror = () => reject(req.error);
+    });
+    tx.oncomplete = () => resolve(ids);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
+
+const getImagesFromDb = async (ids) => {
+  if (!ids.length) return [];
+  const db = await openImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMAGE_STORE_NAME, 'readonly');
+    const store = tx.objectStore(IMAGE_STORE_NAME);
+    const results = new Array(ids.length).fill(null);
+    ids.forEach((id, index) => {
+      const req = store.get(id);
+      req.onsuccess = () => {
+        results[index] = req.result ? req.result.dataUrl : null;
+      };
+      req.onerror = () => reject(req.error);
+    });
+    tx.oncomplete = () => resolve(results);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
+
+const deleteImagesFromDb = async (ids) => {
+  if (!ids.length) return;
+  const db = await openImageDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMAGE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(IMAGE_STORE_NAME);
+    ids.forEach((id) => {
+      const req = store.delete(id);
+      req.onerror = () => reject(req.error);
+    });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+};
 
 const recordUndoEntry = (entry) => {
   undoStack.push(entry);
@@ -111,17 +189,25 @@ const updateSpecLabels = () => {
 const loadItems = () => {
   const raw = localStorage.getItem(STORAGE_KEY);
   state.items = raw ? JSON.parse(raw) : [];
+  let needsSave = false;
   state.items = state.items.map((item) => {
-    if (item.specs && Array.isArray(item.specs)) return item;
+    const hasSpecs = item.specs && Array.isArray(item.specs);
     const details = Array.isArray(item.details) ? item.details : [];
     const legacyText = typeof item.specText === 'string' ? item.specText : '';
-    const specs = details.length
-      ? details.map((name) => ({ name, text: legacyText }))
-      : legacyText
-        ? [{ name: '', text: legacyText }]
-        : [{ name: '', text: '' }];
-    return { ...item, specs };
+    const specs = hasSpecs
+      ? item.specs
+      : details.length
+        ? details.map((name) => ({ name, text: legacyText }))
+        : legacyText
+          ? [{ name: '', text: legacyText }]
+          : [{ name: '', text: '' }];
+    const createdAt = item.createdAt || Date.now();
+    if (!item.createdAt) needsSave = true;
+    const imageIds = Array.isArray(item.imageIds) ? item.imageIds : [];
+    if (!Array.isArray(item.imageIds)) needsSave = true;
+    return { ...item, specs, createdAt, imageIds };
   });
+  return needsSave;
 };
 
 const saveItems = () => {
@@ -141,10 +227,146 @@ const saveItems = () => {
 const pruneChecked = () => {
   const now = Date.now();
   const limit = 72 * 60 * 60 * 1000;
+  const removed = [];
   state.items = state.items.filter((item) => {
     if (!item.checked || !item.checkedAt) return true;
-    return now - item.checkedAt < limit;
+    const keep = now - item.checkedAt < limit;
+    if (!keep) removed.push(item);
+    return keep;
   });
+  return removed;
+};
+
+const removeExpiredItems = () => {
+  const now = Date.now();
+  const removed = [];
+  state.items = state.items.filter((item) => {
+    const createdAt = item.createdAt || now;
+    const expiresAt = createdAt + ITEM_EXPIRE_DAYS * DAY_MS;
+    if (now >= expiresAt) {
+      removed.push(item);
+      return false;
+    }
+    return true;
+  });
+  return removed;
+};
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
+
+const showExpireAlerts = () => {
+  const today = getTodayKey();
+  const now = Date.now();
+  state.items.forEach((item) => {
+    const createdAt = item.createdAt || now;
+    const expiresAt = createdAt + ITEM_EXPIRE_DAYS * DAY_MS;
+    const remainingMs = expiresAt - now;
+    if (remainingMs <= 0) return;
+    const daysLeft = Math.ceil(remainingMs / DAY_MS);
+    if (!EXPIRE_ALERT_DAYS.includes(daysLeft)) return;
+    const alertKey = `expire_alert_${item.id}_${daysLeft}`;
+    if (localStorage.getItem(alertKey) === today) return;
+    localStorage.setItem(alertKey, today);
+    alert(`「${item.name}」は${daysLeft}日後に自動削除されます。`);
+  });
+};
+
+const getItemImageIds = (item) => {
+  if (Array.isArray(item.imageIds)) return item.imageIds;
+  return [];
+};
+
+const getLegacyImages = (item) => {
+  if (Array.isArray(item.images)) return item.images;
+  return [];
+};
+
+const deleteItemImages = (item) => {
+  const ids = getItemImageIds(item);
+  if (ids.length) {
+    deleteImagesFromDb(ids).catch(() => undefined);
+  }
+};
+
+const deleteImagesForItems = (items) => {
+  const ids = items.flatMap((item) => getItemImageIds(item));
+  if (ids.length) {
+    deleteImagesFromDb(ids).catch(() => undefined);
+  }
+};
+
+const migrateLegacyImages = async () => {
+  let changed = false;
+  for (const item of state.items) {
+    const legacy = getLegacyImages(item);
+    if (legacy.length) {
+      try {
+        const ids = await saveImagesToDb(legacy);
+        item.imageIds = [...getItemImageIds(item), ...ids];
+        delete item.images;
+        changed = true;
+      } catch (error) {
+        console.warn('[images] migrate failed', error);
+      }
+    } else if (item.images) {
+      delete item.images;
+      changed = true;
+    }
+  }
+  return changed;
+};
+
+const renderItemImages = async (item, { editable } = {}) => {
+  if (!els.imagePreview) return;
+  const preview = els.imagePreview;
+  const legacyImages = getLegacyImages(item);
+  const imageIds = getItemImageIds(item);
+  const itemId = item.id;
+  preview.innerHTML = '';
+
+  if (legacyImages.length) {
+    legacyImages.forEach((src, index) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-item';
+      wrap.innerHTML = `<img src="${src}" alt="${item.name}の画像" />`;
+      if (editable) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preview-remove';
+        btn.dataset.action = 'remove-image';
+        btn.dataset.index = String(index);
+        btn.textContent = '×';
+        wrap.appendChild(btn);
+      }
+      preview.appendChild(wrap);
+    });
+    return;
+  }
+
+  if (!imageIds.length) return;
+  try {
+    const images = await getImagesFromDb(imageIds);
+    if (els.itemDialog?.dataset.itemId !== itemId) return;
+    preview.innerHTML = '';
+    images.forEach((src, index) => {
+      if (!src) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-item';
+      wrap.innerHTML = `<img src="${src}" alt="${item.name}の画像" />`;
+      if (editable) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preview-remove';
+        btn.dataset.action = 'remove-image';
+        btn.dataset.index = String(index);
+        btn.textContent = '×';
+        wrap.appendChild(btn);
+      }
+      preview.appendChild(wrap);
+    });
+  } catch (error) {
+    console.warn('[images] load failed', error);
+  }
 };
 
 const setAccordionState = (accordion, isOpen) => {
@@ -353,7 +575,9 @@ const updateHistoryValue = (target, oldValue, newValue) => {
 const removeHistoryValues = (target, values) => {
   if (!values.length) return;
   if (target === 'historyNames') {
+    const removed = state.items.filter((item) => values.includes(item.name));
     state.items = state.items.filter((item) => !values.includes(item.name));
+    deleteImagesForItems(removed);
     return;
   }
   if (target === 'historyPlaces') {
@@ -626,7 +850,7 @@ const renderGroup = (title, items, showMap, isChecked = false, showCheckedAction
     const li = document.createElement('li');
     li.className = 'item';
     const dueBadge = item.dueDate ? `<span class="badge">${formatDue(item)}</span>` : `<span class="badge is-empty"></span>`;
-    const hasImages = Array.isArray(item.images) && item.images.length > 0;
+    const hasImages = getItemImageIds(item).length > 0 || getLegacyImages(item).length > 0;
     const hasUrl = Boolean((item.url || '').trim());
     const icons = `
       <span class="item-icons">
@@ -776,15 +1000,7 @@ const openDialog = (item) => {
     <div class="detail-row"><span class="detail-label">比較URL</span><span class="detail-sep">:</span><span class="detail-value">${urlHtml}</span></div>
   `;
   els.itemDialog.dataset.editing = 'false';
-  if (els.imagePreview) {
-    els.imagePreview.innerHTML = '';
-    (item.images || []).forEach((src) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'preview-item';
-      wrap.innerHTML = `<img src="${src}" alt="${item.name}の画像" />`;
-      els.imagePreview.appendChild(wrap);
-    });
-  }
+  renderItemImages(item, { editable: false });
   els.itemDialog.dataset.itemId = item.id;
   els.itemDialog.showModal();
 };
@@ -877,22 +1093,7 @@ const renderDialogEdit = (item) => {
   registerInputs(els.dialogContent);
   if (els.dialogTitleInput) registerInputs(els.itemDialog);
   updateDuePlaceholders(els.itemDialog);
-  if (els.imagePreview) {
-    els.imagePreview.innerHTML = '';
-    (item.images || []).forEach((src, index) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'preview-item';
-      wrap.innerHTML = `<img src="${src}" alt="${item.name}の画像" />`;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'preview-remove';
-      btn.dataset.action = 'remove-image';
-      btn.dataset.index = String(index);
-      btn.textContent = '×';
-      wrap.appendChild(btn);
-      els.imagePreview.appendChild(wrap);
-    });
-  }
+  renderItemImages(item, { editable: true });
 };
 
 const registerInputs = (root) => {
@@ -979,7 +1180,7 @@ if (els.itemDialog) {
   });
 }
 
-const addImagesToItem = (files) => {
+const addImagesToItem = async (files) => {
   const itemId = els.itemDialog?.dataset.itemId;
   if (!itemId || !files?.length) return;
   const item = state.items.find((i) => i.id === itemId);
@@ -990,9 +1191,13 @@ const addImagesToItem = (files) => {
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   }));
-  Promise.all(readers).then((results) => {
-    const images = results.filter(Boolean);
-    item.images = [...(item.images || []), ...images];
+  const results = await Promise.all(readers);
+  const images = results.filter(Boolean);
+  if (!images.length) return;
+  try {
+    const ids = await saveImagesToDb(images);
+    item.imageIds = [...getItemImageIds(item), ...ids];
+    delete item.images;
     saveItems();
     buildHistory();
     renderList();
@@ -1009,7 +1214,10 @@ const addImagesToItem = (files) => {
     } else {
       openDialog(item);
     }
-  });
+  } catch (error) {
+    console.warn('[images] add to item failed', error);
+    alert('画像の保存に失敗しました。容量を確認してください。');
+  }
 };
 
 const addImagesToRegister = (files) => {
@@ -1203,21 +1411,17 @@ if (els.registerImageClear) {
   });
 }
 
-const init = () => {
-  loadItems();
-  pruneChecked();
-  if (!saveItems()) {
-    if (newItem.images && newItem.images.length) {
-      newItem.images = [];
-      state.items = state.items.map((item) => (item.id === state.editId ? { ...item, ...newItem } : item));
-      if (!state.editId) {
-        state.items = [newItem, ...state.items.filter((item) => item.id !== newItem.id)];
-      }
-      if (!saveItems()) return;
-    } else {
-      return;
-    }
+const init = async () => {
+  const needsInitSave = loadItems();
+  const removedChecked = pruneChecked();
+  const migrated = await migrateLegacyImages();
+  const removedExpired = removeExpiredItems();
+  if (removedChecked.length || removedExpired.length) {
+    deleteImagesForItems([...removedChecked, ...removedExpired]);
   }
+  const shouldSave = needsInitSave || migrated || removedChecked.length || removedExpired.length;
+  if (shouldSave && !saveItems()) return;
+  showExpireAlerts();
   buildHistory();
   renderList();
   setAccordionState(els.registerAccordion, false);
@@ -1500,7 +1704,9 @@ if (els.historyAccordion) {
       renderList();
     }
     if (action === 'remove-checked') {
+      const removed = state.items.filter((item) => item.checked);
       state.items = state.items.filter((item) => !item.checked);
+      deleteImagesForItems(removed);
       saveItems();
       buildHistory();
       renderList();
@@ -1540,6 +1746,17 @@ els.registerForm.addEventListener('submit', async (event) => {
   }
   const specs = readSpecs();
   const existing = state.editId ? state.items.find((item) => item.id === state.editId) : null;
+  let registerImageIds = [];
+  if (!state.editId) {
+    try {
+      registerImageIds = await saveImagesToDb(registerImages);
+    } catch (error) {
+      console.warn('[register] image save failed', error);
+      alert('画像の保存に失敗しました。容量を確認してください。');
+      registerImageIds = [];
+    }
+  }
+  const legacyImages = state.editId ? getLegacyImages(existing || {}) : [];
   const newItem = {
     id: state.editId || crypto.randomUUID(),
     name,
@@ -1551,11 +1768,14 @@ els.registerForm.addEventListener('submit', async (event) => {
     dueTime: els.itemDueTime.value,
     priority: els.registerForm.querySelector('[name="priority"]')?.value || '',
     url: els.itemUrl.value.trim(),
-    createdAt: Date.now(),
+    createdAt: state.editId ? (existing?.createdAt || Date.now()) : Date.now(),
     checked: false,
     checkedAt: null,
-    images: state.editId ? (existing?.images || []) : registerImages,
+    imageIds: state.editId ? getItemImageIds(existing || {}) : registerImageIds,
   };
+  if (state.editId && legacyImages.length && newItem.imageIds.length === 0) {
+    newItem.images = legacyImages;
+  }
 
   if (state.editId) {
     state.items = state.items.map((item) => (item.id === state.editId ? { ...item, ...newItem } : item));
@@ -1565,13 +1785,10 @@ els.registerForm.addEventListener('submit', async (event) => {
 
   console.log('[register] saving item', newItem);
   if (!saveItems()) {
-    const saved = state.items.find((item) => item.id === newItem.id);
-    if (saved && Array.isArray(saved.images) && saved.images.length) {
-      saved.images = [];
-      if (!saveItems()) return;
-    } else {
-      return;
+    if (registerImageIds.length) {
+      await deleteImagesFromDb(registerImageIds).catch(() => undefined);
     }
+    return;
   }
   buildHistory();
   renderList();
@@ -1685,7 +1902,9 @@ els.listContainer.addEventListener('click', (event) => {
     renderList();
   }
   if (action === 'clear-checked') {
+    const removed = state.items.filter((item) => item.checked);
     state.items = state.items.filter((item) => !item.checked);
+    deleteImagesForItems(removed);
     saveItems();
     buildHistory();
     renderList();
@@ -1742,8 +1961,14 @@ els.itemDialog.addEventListener('click', (event) => {
     const dueTime = els.itemDialog.querySelector('[name="editDueTime"]')?.value || '';
     const priority = els.itemDialog.querySelector('[name="editPriority"]')?.value || item.priority || '';
     const url = els.itemDialog.querySelector('[name="editUrl"]')?.value || '';
-    const images = Array.isArray(item.images) ? item.images : [];
-    const updated = { ...item, name: name.trim(), qty, specs, place: place.trim(), dueDate, dueTime, priority, url: url.trim(), images };
+    const imageIds = getItemImageIds(item);
+    const legacyImages = getLegacyImages(item);
+    const updated = { ...item, name: name.trim(), qty, specs, place: place.trim(), dueDate, dueTime, priority, url: url.trim(), imageIds };
+    if (imageIds.length === 0 && legacyImages.length) {
+      updated.images = legacyImages;
+    } else {
+      delete updated.images;
+    }
     state.items = state.items.map((i) => (i.id === itemId ? updated : i));
     saveItems();
     buildHistory();
@@ -1776,6 +2001,7 @@ els.itemDialog.addEventListener('click', (event) => {
       openDialog(item);
       return;
     }
+    deleteItemImages(item);
     state.items = state.items.filter((i) => i.id !== itemId);
     saveItems();
     buildHistory();
@@ -1784,9 +2010,16 @@ els.itemDialog.addEventListener('click', (event) => {
   }
   if (action === 'remove-image') {
     const index = Number(event.target.dataset.index);
-    const images = item.images || [];
     if (!Number.isNaN(index)) {
-      item.images = images.filter((_, i) => i !== index);
+      const legacyImages = getLegacyImages(item);
+      if (legacyImages.length) {
+        item.images = legacyImages.filter((_, i) => i !== index);
+      } else {
+        const ids = getItemImageIds(item);
+        const removed = ids[index];
+        item.imageIds = ids.filter((_, i) => i !== index);
+        if (removed) deleteImagesFromDb([removed]).catch(() => undefined);
+      }
       saveItems();
       buildHistory();
       renderList();
