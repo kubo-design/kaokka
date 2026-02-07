@@ -229,9 +229,16 @@ body {
   align-items: center;
 }
 
+
 #registerAccordion .field-input.is-inline input {
   flex: 1 1 0;
   min-width: 0;
+}
+
+#registerAccordion .field-input input,
+#registerAccordion .field-input select,
+#registerAccordion .field-input textarea {
+  font-size: 17px;
 }
 
 #registerAccordion .field-row.is-due .field-input {
@@ -278,12 +285,12 @@ body {
 .field-sub select {
   width: 100%;
   height: var(--control-height);
-  padding: 0 12px;
+  padding: 0 7px;
   line-height: var(--control-height);
-  border: 0;
+  border: 1px solid #000;
   border-radius: 5px;
   font-size: 15px;
-  background: #fff0f0;
+  background: #ffcbce;
   font-family: inherit;
 }
 
@@ -448,7 +455,7 @@ body {
 
 #registerAccordion .spec-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(70px, 70px) auto minmax(64px, 72px);
+  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(36px, 52px);
   align-items: center;
   gap: 6px;
 }
@@ -478,7 +485,7 @@ body {
 
 #registerAccordion .name-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(70px, 70px) auto minmax(36px, 52px);
+  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(36px, 52px);
   align-items: center;
   gap: 6px;
 }
@@ -498,8 +505,9 @@ body {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 24px;
-  background-image: linear-gradient(45deg, transparent 50%, #f6aeb3 50%),
-    linear-gradient(135deg, #f6aeb3 50%, transparent 50%);
+  color: #5f6fdc;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+    linear-gradient(135deg, #fff 50%, transparent 50%);
   background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
   background-size: 7px 7px, 7px 7px;
   background-repeat: no-repeat;
@@ -524,7 +532,7 @@ body {
 
 #registerAccordion .place-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(70px, 70px) auto;
+  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto;
   align-items: center;
   gap: 6px;
 }
@@ -576,15 +584,15 @@ body {
   align-items: center;
   justify-content: center;
   height: var(--control-height);
-  background: #fff0f0;
+  background: #ffcbcf;
   color: var(--accent);
-  border: 0;
+  border: 1px solid #000;
   border-radius: 5px;
 }
 
 #registerAccordion .image-icon-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 25px;
+  height: 25px;
   display: block;
 }
 
@@ -654,7 +662,7 @@ body {
 #registerAccordion input::placeholder,
 #registerAccordion textarea::placeholder {
   font-size: 0.9em;
-  color: #d3c5c5;
+  color: #b27b7e;
 }
 
 #registerAccordion textarea {
@@ -710,10 +718,10 @@ body {
   text-align: left;
   border: 1px solid var(--line);
   background: #f8f6f1;
-  color: var(--ink);
+  color: #000000;
   border-radius: 5px;
   padding: 6px 8px;
-  font-size: 12px;
+  font-size: 15px;
   cursor: pointer;
   flex: 1;
   min-width: 0;
@@ -783,7 +791,7 @@ body {
   padding: 0 10px;
   height: calc(var(--control-height) * 2 / 3);
   line-height: calc(var(--control-height) * 2 / 3);
-  font-size: 0.75em;
+  font-size: 1.0em;
 }
 
 #registerAccordion .inline-history-empty {
@@ -834,8 +842,8 @@ body {
   height: var(--control-height);
   padding: 0 10px;
   border-radius: 5px;
-  border: 0;
-  background: #fff0f0;
+  border: 1px solid #000;
+  background: #ffcbcf;
   font-size: 15px;
   font-family: inherit;
   color: #5f6fdc;
@@ -846,8 +854,8 @@ body {
   appearance: none;
   -webkit-appearance: none;
   padding-right: 30px;
-  background-image: linear-gradient(45deg, transparent 50%, #f6aeb3 50%),
-    linear-gradient(135deg, #f6aeb3 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+    linear-gradient(135deg, #fff 50%, transparent 50%);
   background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50%;
   background-size: 7px 7px, 7px 7px;
   background-repeat: no-repeat;
@@ -890,7 +898,7 @@ body {
 }
 
 .accordion-body {
-  padding: 12px 16px 16px;
+  padding: 12px 16px 30px;
 }
 
 #registerAccordion .accordion-header {
@@ -1084,7 +1092,7 @@ body {
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 16px;
   color: #fff;
 }
 
@@ -1423,6 +1431,7 @@ body {
   width: 100%;
 }
 
+
 .dialog-inline input[type="date"],
 .dialog-inline input[type="time"] {
   min-width: 0;
@@ -1596,6 +1605,11 @@ body {
   .field-sub {
     grid-column: auto;
   }
+
+  .dialog-inline {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 .ghost-btn.icon-lines {
   position: relative;
@@ -1651,30 +1665,38 @@ body {
 #registerAccordion .name-history,
 #registerAccordion .spec-history,
 #registerAccordion .place-history {
-  color: #f6aeb3;
+  color: #000;
 }
 
-#registerAccordion .name-history,
-#registerAccordion .spec-history,
-#registerAccordion .place-history,
-#registerAccordion #itemQty,
-#registerAccordion [name="specUnit"],
 #registerAccordion #itemDueDate,
 #registerAccordion #itemDueTime,
 #registerAccordion .priority-select {
+  font-size: 1.1em;
+}
+
+#registerAccordion #itemQty,
+#registerAccordion [name="specUnit"] {
+  font-size: 1.1em;
+}
+
+#registerAccordion .priority-select option {
   font-size: 0.9em;
 }
 
+#registerAccordion .priority-select option[value=""] {
+  font-size: 1.1em;
+}
+
 #registerAccordion #itemQty option,
-#registerAccordion [name="specUnit"] option,
-#registerAccordion .priority-select option {
-  font-size: 0.9em;
+#registerAccordion [name="specUnit"] option {
+  font-size: 1.1em;
 }
 
 #registerAccordion .name-history::placeholder,
 #registerAccordion .spec-history::placeholder,
 #registerAccordion .place-history::placeholder {
-  color: #f6aeb3;
+  color: #fff;
+  font-size: 1.2em;
 }
 
 

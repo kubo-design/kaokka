@@ -428,6 +428,7 @@ const toggleInlineHistory = (button) => {
   button.classList.add('is-open');
 };
 
+
 const resetForm = () => {
   els.registerForm.reset();
   const extraGroups = Array.from(els.specFields.querySelectorAll('[data-spec-group]')).slice(1);
@@ -807,13 +808,18 @@ const renderDialogEdit = (item) => {
     <label class="dialog-field">
       <span>いつまで</span>
       <div class="dialog-inline">
-        <input type="date" name="editDueDate" value="${item.dueDate || ''}" />
-        <input type="time" name="editDueTime" value="${item.dueTime || ''}" />
+        <div class="due-field" data-placeholder="年/月/日">
+          <input type="date" name="editDueDate" value="${item.dueDate || ''}" />
+        </div>
+        <div class="due-field" data-placeholder="--:--">
+          <input type="time" name="editDueTime" value="${item.dueTime || ''}" />
+        </div>
       </div>
     </label>
     <label class="dialog-field">
       <span>優先度</span>
       <select name="editPriority">
+        <option value="" ${!item.priority ? 'selected' : ''}>優先無</option>
         <option value="high" ${item.priority === 'high' ? 'selected' : ''}>高</option>
         <option value="mid" ${item.priority === 'mid' ? 'selected' : ''}>中</option>
         <option value="low" ${item.priority === 'low' ? 'selected' : ''}>低</option>

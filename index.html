@@ -14,7 +14,7 @@
       <div class="logo">
         <img class="logo-illust" src="kaokka_logo.png" alt="kaokka logo" />
       </div>
-      <div class="version">ver.1.0.4</div>
+      <div class="version">ver.1.0.5</div>
     </header>
 
     <main>
@@ -184,8 +184,12 @@
             <div class="field-row is-due">
               <label class="field-label" for="itemDueDate">いつまで</label>
               <div class="field-input is-inline">
-                <input id="itemDueDate" name="itemDueDate" type="date" />
-                <input id="itemDueTime" name="itemDueTime" type="time" />
+                <div class="due-field" data-placeholder="年/月/日">
+                  <input id="itemDueDate" name="itemDueDate" type="date" />
+                </div>
+                <div class="due-field" data-placeholder="--:--">
+                  <input id="itemDueTime" name="itemDueTime" type="time" />
+                </div>
               </div>
             </div>
 
