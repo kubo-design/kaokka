@@ -125,7 +125,17 @@ const loadItems = () => {
 };
 
 const saveItems = () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    return true;
+  } catch (error) {
+    const name = error?.name || '';
+    if (name === 'QuotaExceededError' || name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      alert('保存容量が上限に達しました。画像を減らすか不要な項目を削除してください。');
+      return false;
+    }
+    throw error;
+  }
 };
 
 const pruneChecked = () => {
@@ -1196,7 +1206,18 @@ if (els.registerImageClear) {
 const init = () => {
   loadItems();
   pruneChecked();
-  saveItems();
+  if (!saveItems()) {
+    if (newItem.images && newItem.images.length) {
+      newItem.images = [];
+      state.items = state.items.map((item) => (item.id === state.editId ? { ...item, ...newItem } : item));
+      if (!state.editId) {
+        state.items = [newItem, ...state.items.filter((item) => item.id !== newItem.id)];
+      }
+      if (!saveItems()) return;
+    } else {
+      return;
+    }
+  }
   buildHistory();
   renderList();
   setAccordionState(els.registerAccordion, false);
@@ -1543,7 +1564,15 @@ els.registerForm.addEventListener('submit', async (event) => {
   }
 
   console.log('[register] saving item', newItem);
-  saveItems();
+  if (!saveItems()) {
+    const saved = state.items.find((item) => item.id === newItem.id);
+    if (saved && Array.isArray(saved.images) && saved.images.length) {
+      saved.images = [];
+      if (!saveItems()) return;
+    } else {
+      return;
+    }
+  }
   buildHistory();
   renderList();
   resetForm();
