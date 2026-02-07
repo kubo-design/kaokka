@@ -518,6 +518,7 @@ body {
 #registerAccordion .name-inline input {
   min-width: 0;
   width: 100%;
+  display: block;
 }
 
 #itemName {
