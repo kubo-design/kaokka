@@ -445,6 +445,7 @@ const resetForm = () => {
   if (nameRow) nameRow.classList.add('is-hidden');
 };
 
+
 const readSpecs = () => {
   const groups = Array.from(els.specFields.querySelectorAll('[data-spec-group]'));
   return groups.map((group) => {
@@ -1202,6 +1203,9 @@ els.registerForm.addEventListener('click', (event) => {
       group.remove();
       updateSpecLabels();
     }
+  }
+  if (action === 'clear-register') {
+    resetForm();
   }
 });
 

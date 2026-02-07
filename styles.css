@@ -239,6 +239,7 @@ body {
 #registerAccordion .field-input select,
 #registerAccordion .field-input textarea {
   font-size: 17px;
+  font-weight: 700;
 }
 
 #registerAccordion .field-row.is-due .field-input {
@@ -455,7 +456,7 @@ body {
 
 #registerAccordion .spec-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(36px, 52px);
+  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(78px, 78px);
   align-items: center;
   gap: 6px;
 }
@@ -485,7 +486,7 @@ body {
 
 #registerAccordion .name-inline {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(36px, 52px);
+  grid-template-columns: minmax(0, 1.55fr) minmax(75px, 75px) auto minmax(78px, 78px);
   align-items: center;
   gap: 6px;
 }
@@ -501,7 +502,7 @@ body {
 
 #registerAccordion .name-qty {
   text-align: right;
-  max-width: 52px;
+  max-width: 78px;
   appearance: none;
   -webkit-appearance: none;
   padding-right: 24px;
@@ -686,7 +687,7 @@ body {
   border: none;
   border-radius: 5px;
   background: #5f6fdc;
-  padding: 15px;
+  padding: 20px 15px;
   margin-top: 10px;
   display: grid;
   gap: 6px;
@@ -757,6 +758,7 @@ body {
 
 #registerAccordion .inline-history-edit.is-editing {
   border-color: transparent;
+  background: #000 !important;
 }
 
 #registerAccordion .inline-history-edit.is-editing::before,
@@ -789,9 +791,9 @@ body {
   color: #000;
   border: 1px solid #fff;
   padding: 0 10px;
-  height: calc(var(--control-height) * 2 / 3);
-  line-height: calc(var(--control-height) * 2 / 3);
-  font-size: 1.0em;
+  height: calc(var(--control-height) * 0.8);
+  line-height: calc(var(--control-height) * 0.8);
+  font-size: 0.9em;
 }
 
 #registerAccordion .inline-history-empty {
@@ -826,7 +828,7 @@ body {
 
 .register-actions {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1.2fr 0.8fr 2fr;
   gap: 10px;
   margin-top: 16px;
   align-items: center;
@@ -835,6 +837,18 @@ body {
 .register-actions .primary-btn {
   margin-top: 0;
   width: 100%;
+}
+
+.register-actions .priority-select,
+.register-actions .clear-btn,
+.register-actions .primary-btn {
+  height: var(--control-height);
+}
+
+.register-actions .clear-btn {
+  background: #979797;
+  color: #fff;
+  border: 0;
 }
 
 .priority-select {
@@ -898,7 +912,7 @@ body {
 }
 
 .accordion-body {
-  padding: 12px 16px 30px;
+  padding: 12px 16px 50px;
 }
 
 #registerAccordion .accordion-header {
@@ -1611,6 +1625,12 @@ body {
     gap: 6px;
   }
 }
+
+@media (max-width: 430px) {
+  .dialog-inline {
+    grid-template-columns: 1fr;
+  }
+}
 .ghost-btn.icon-lines {
   position: relative;
   width: 40px;
@@ -1625,6 +1645,10 @@ body {
 #registerAccordion .ghost-btn.icon-lines {
   background: #5f6fdc;
   border: none;
+}
+
+#registerAccordion .ghost-btn.icon-lines.is-open {
+  background: #000;
 }
 
 #itemDialog .ghost-btn.icon-lines::before,
