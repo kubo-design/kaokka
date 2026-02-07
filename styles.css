@@ -229,6 +229,30 @@ body {
   align-items: center;
 }
 
+#registerAccordion .due-field {
+  position: relative;
+  width: 100%;
+}
+
+#registerAccordion .due-field::after {
+  content: attr(data-placeholder);
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5f6fdc;
+  font-size: 0.9em;
+  pointer-events: none;
+}
+
+#registerAccordion .due-field.has-value::after {
+  content: "";
+}
+
+#registerAccordion .due-field.is-empty input,
+#registerAccordion .due-field.is-empty input::-webkit-datetime-edit {
+  color: transparent;
+}
 
 #registerAccordion .field-input.is-inline input {
   flex: 1 1 0;
@@ -1403,7 +1427,7 @@ body {
   display: grid;
   gap: 4px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 18px;
   color: var(--muted);
 }
 
@@ -1414,7 +1438,7 @@ body {
   padding: 0 10px;
   border: 1px solid #cfd6ff;
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 19.5px;
   color: var(--ink);
   background: #fff;
   font-family: inherit;
@@ -1429,7 +1453,7 @@ body {
   padding: 8px 10px;
   border: 1px solid #cfd6ff;
   border-radius: 5px;
-  font-size: 13px;
+  font-size: 19.5px;
   color: var(--ink);
   background: #fff;
   font-family: inherit;
@@ -1443,6 +1467,31 @@ body {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 4px;
   width: 100%;
+}
+
+.dialog-inline .due-field {
+  position: relative;
+  width: 100%;
+}
+
+.dialog-inline .due-field::after {
+  content: attr(data-placeholder);
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5f6fdc;
+  font-size: 0.9em;
+  pointer-events: none;
+}
+
+.dialog-inline .due-field.has-value::after {
+  content: "";
+}
+
+.dialog-inline .due-field.is-empty input,
+.dialog-inline .due-field.is-empty input::-webkit-datetime-edit {
+  color: transparent;
 }
 
 
@@ -1521,7 +1570,7 @@ body {
 }
 
 .dialog-content {
-  font-size: 13px;
+  font-size: 19.5px;
   color: var(--muted);
   display: grid;
   gap: 0;
@@ -1573,6 +1622,10 @@ body {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+
+.dialog-actions .ghost-btn {
+  font-size: 19.5px;
 }
 
 .hidden {
@@ -1690,6 +1743,8 @@ body {
 #registerAccordion .spec-history,
 #registerAccordion .place-history {
   color: #000;
+  font-size: 16px !important;
+  font-weight: 400 !important;
 }
 
 #registerAccordion #itemDueDate,

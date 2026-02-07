@@ -445,6 +445,17 @@ const resetForm = () => {
   if (nameRow) nameRow.classList.add('is-hidden');
 };
 
+const updateDuePlaceholders = (root) => {
+  const scope = root instanceof Element || root instanceof Document ? root : document;
+  scope.querySelectorAll('.due-field').forEach((wrap) => {
+    const input = wrap.querySelector('input');
+    if (!input) return;
+    const hasValue = Boolean(input.value);
+    wrap.classList.toggle('has-value', hasValue);
+    wrap.classList.toggle('is-empty', !hasValue);
+  });
+};
+
 
 const readSpecs = () => {
   const groups = Array.from(els.specFields.querySelectorAll('[data-spec-group]'));
@@ -833,6 +844,7 @@ const renderDialogEdit = (item) => {
   `;
   registerInputs(els.dialogContent);
   if (els.dialogTitleInput) registerInputs(els.itemDialog);
+  updateDuePlaceholders(els.itemDialog);
   if (els.imagePreview) {
     els.imagePreview.innerHTML = '';
     (item.images || []).forEach((src, index) => {
@@ -1154,6 +1166,7 @@ const init = () => {
   renderList();
   setAccordionState(els.registerAccordion, false);
   setAccordionState(els.listAccordion, true);
+  updateDuePlaceholders(document);
 };
 
 document.addEventListener('click', (event) => {
@@ -1165,17 +1178,40 @@ document.addEventListener('click', (event) => {
   }
 });
 
+document.addEventListener('pointerdown', (event) => {
+  const input = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  input.focus();
+  if (typeof input.showPicker === 'function') {
+    input.showPicker();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  const input = event.target.closest?.('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  event.preventDefault();
+});
+
 document.addEventListener('input', (event) => {
   const el = event.target;
   if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return;
   if (el.type === 'checkbox' || el.type === 'radio' || el.type === 'file') return;
   recordChange(el);
+  if (el.closest('.due-field')) updateDuePlaceholders(document);
 });
 
 document.addEventListener('change', (event) => {
   const el = event.target;
   if (!(el instanceof HTMLSelectElement)) return;
   recordChange(el);
+});
+
+document.addEventListener('change', (event) => {
+  const el = event.target;
+  if (!(el instanceof HTMLInputElement)) return;
+  if (el.type !== 'date' && el.type !== 'time') return;
+  if (el.closest('.due-field')) updateDuePlaceholders(document);
 });
 
 document.addEventListener('focusin', (event) => {
