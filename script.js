@@ -1204,12 +1204,21 @@ document.addEventListener('click', (event) => {
   }
 });
 
+let isTriggeringHistoryPicker = false;
+
 const openHistoryPicker = (input) => {
   if (!(input instanceof HTMLInputElement)) return;
+  if (isTriggeringHistoryPicker) return;
+  isTriggeringHistoryPicker = true;
   input.focus();
   if (typeof input.showPicker === 'function') {
     input.showPicker();
+  } else {
+    input.click();
   }
+  setTimeout(() => {
+    isTriggeringHistoryPicker = false;
+  }, 0);
 };
 
 document.addEventListener('pointerdown', (event) => {
