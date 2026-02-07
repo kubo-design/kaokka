@@ -1210,10 +1210,19 @@ const openHistoryPicker = (input) => {
   if (!(input instanceof HTMLInputElement)) return;
   if (isTriggeringHistoryPicker) return;
   isTriggeringHistoryPicker = true;
+  console.log('[history] tap', {
+    id: input.id,
+    className: input.className,
+    list: input.getAttribute('list'),
+    hasShowPicker: typeof input.showPicker === 'function',
+    ua: navigator.userAgent,
+  });
   input.focus();
   if (typeof input.showPicker === 'function') {
+    console.log('[history] showPicker()');
     input.showPicker();
   } else {
+    console.log('[history] fallback click()');
     input.click();
   }
   setTimeout(() => {
