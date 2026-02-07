@@ -1212,24 +1212,9 @@ const openHistoryPicker = (input) => {
   }
 };
 
-const isIOS = () => /iP(ad|hone|od)/.test(navigator.userAgent);
-
-const openHistoryPanelForInput = (input) => {
-  if (!(input instanceof HTMLInputElement)) return false;
-  const row = input.closest('.field-row');
-  const button = row?.querySelector('[data-action="open-history"]');
-  if (!button) return false;
-  toggleInlineHistory(button);
-  return true;
-};
-
 document.addEventListener('pointerdown', (event) => {
   const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
   if (!input) return;
-  if (isIOS() && input.classList.contains('dialog-place-history') === false) {
-    event.preventDefault();
-    if (openHistoryPanelForInput(input)) return;
-  }
   openHistoryPicker(input);
 });
 
