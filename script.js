@@ -773,6 +773,9 @@ const openDialog = (item) => {
 };
 
 const renderDialogEdit = (item) => {
+  if (els.itemDialog) {
+    els.itemDialog.dataset.itemId = item.id;
+  }
   const specs = (item.specs && item.specs.length) ? item.specs : [{ name: '', text: '' }];
   const specsHtml = specs.map((spec, index) => `
       <div class="dialog-spec-row" data-spec-index="${index}">
@@ -1204,8 +1207,6 @@ const openHistoryPicker = (input) => {
   input.focus();
   if (typeof input.showPicker === 'function') {
     input.showPicker();
-  } else {
-    input.click();
   }
 };
 
@@ -1213,24 +1214,6 @@ document.addEventListener('pointerdown', (event) => {
   const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
   if (!input) return;
   openHistoryPicker(input);
-});
-
-document.addEventListener('click', (event) => {
-  const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
-  if (!input) return;
-  openHistoryPicker(input);
-});
-
-els.registerForm.addEventListener('click', (event) => {
-  const field = event.target.closest('.name-history, .spec-history, .place-history');
-  if (!field) return;
-  event.preventDefault();
-  field.focus();
-  if (typeof field.showPicker === 'function') {
-    field.showPicker();
-  } else {
-    field.click();
-  }
 });
 
 document.addEventListener('focusin', (event) => {
