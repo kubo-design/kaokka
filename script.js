@@ -1286,6 +1286,17 @@ els.registerForm.addEventListener('click', (event) => {
   }
 });
 
+els.registerForm.addEventListener('pointerdown', (event) => {
+  const input = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  const row = input.closest('.field-row');
+  const button = row?.querySelector('[data-action="open-history"]');
+  if (button) {
+    event.preventDefault();
+    toggleInlineHistory(button);
+  }
+});
+
 els.registerForm.addEventListener('keydown', (event) => {
   if (event.key !== 'Enter') return;
   const el = event.target;
