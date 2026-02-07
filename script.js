@@ -1503,9 +1503,20 @@ if (els.historyList) {
 
 els.registerForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  console.log('[register] submit start', {
+    hasName: Boolean(els.itemName.value.trim()),
+    pendingImages: pendingRegisterImages !== Promise.resolve(),
+    registerImages: registerImages.length,
+  });
   await waitForPendingImages();
+  console.log('[register] after wait', {
+    registerImages: registerImages.length,
+  });
   const name = els.itemName.value.trim();
-  if (!name) return;
+  if (!name) {
+    console.log('[register] blocked: empty name');
+    return;
+  }
   const specs = readSpecs();
   const existing = state.editId ? state.items.find((item) => item.id === state.editId) : null;
   const newItem = {
@@ -1531,12 +1542,14 @@ els.registerForm.addEventListener('submit', async (event) => {
     state.items.unshift(newItem);
   }
 
+  console.log('[register] saving item', newItem);
   saveItems();
   buildHistory();
   renderList();
   resetForm();
   setAccordionState(els.registerAccordion, true);
   setAccordionState(els.listAccordion, true);
+  console.log('[register] done');
 });
 
 els.segments.forEach((segment) => {
