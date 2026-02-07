@@ -15,6 +15,7 @@ const lastValues = new WeakMap();
 let suppressDialogClose = false;
 let registerImages = [];
 let registerImageNames = [];
+let pendingRegisterImages = Promise.resolve();
 
 const recordUndoEntry = (entry) => {
   undoStack.push(entry);
@@ -1012,7 +1013,7 @@ const addImagesToRegister = (files) => {
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   }));
-  Promise.all(readers).then((results) => {
+  pendingRegisterImages = pendingRegisterImages.then(() => Promise.all(readers)).then((results) => {
     const images = results.filter(Boolean);
     registerImages = [...registerImages, ...images];
   });
@@ -1165,6 +1166,7 @@ if (els.registerImageCamera) {
   els.registerImageCamera.addEventListener('change', (event) => {
     addImagesToRegister(event.target.files);
     event.target.value = '';
+    if (event.target instanceof HTMLInputElement) event.target.blur();
   });
 }
 
@@ -1214,6 +1216,16 @@ document.addEventListener('pointerdown', (event) => {
   const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
   if (!input) return;
   openHistoryPicker(input);
+});
+
+els.registerForm.addEventListener('pointerdown', (event) => {
+  const input = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  const row = input.closest('.field-row');
+  const button = row?.querySelector('[data-action="open-history"]');
+  if (!button) return;
+  event.preventDefault();
+  toggleInlineHistory(button);
 });
 
 document.addEventListener('focusin', (event) => {
@@ -1459,8 +1471,9 @@ if (els.historyList) {
   });
 }
 
-els.registerForm.addEventListener('submit', (event) => {
+els.registerForm.addEventListener('submit', async (event) => {
   event.preventDefault();
+  await pendingRegisterImages;
   const name = els.itemName.value.trim();
   if (!name) return;
   const specs = readSpecs();
