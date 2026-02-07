@@ -78,7 +78,7 @@ const priorityColor = {
 const specIndexMarks = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
 const formatSpecLabel = (index) => {
   const mark = specIndexMarks[index - 1] || `(${index})`;
-  return `金額・仕様・規格 + 内容・備考 ${mark}`;
+  return `仕様・規格 + 内容・備考 ${mark}`;
 };
 
 const updateSpecLabels = () => {
@@ -1221,6 +1221,18 @@ document.addEventListener('click', (event) => {
   openHistoryPicker(input);
 });
 
+els.registerForm.addEventListener('click', (event) => {
+  const field = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!field) return;
+  event.preventDefault();
+  field.focus();
+  if (typeof field.showPicker === 'function') {
+    field.showPicker();
+  } else {
+    field.click();
+  }
+});
+
 document.addEventListener('focusin', (event) => {
   const input = event.target.closest?.('.dialog-place-history');
   if (!(input instanceof HTMLInputElement)) return;
@@ -1662,7 +1674,8 @@ els.itemDialog.addEventListener('click', (event) => {
     const dueTime = els.itemDialog.querySelector('[name="editDueTime"]')?.value || '';
     const priority = els.itemDialog.querySelector('[name="editPriority"]')?.value || item.priority || '';
     const url = els.itemDialog.querySelector('[name="editUrl"]')?.value || '';
-    const updated = { ...item, name: name.trim(), qty, specs, place: place.trim(), dueDate, dueTime, priority, url: url.trim() };
+    const images = Array.isArray(item.images) ? item.images : [];
+    const updated = { ...item, name: name.trim(), qty, specs, place: place.trim(), dueDate, dueTime, priority, url: url.trim(), images };
     state.items = state.items.map((i) => (i.id === itemId ? updated : i));
     saveItems();
     buildHistory();

@@ -1176,7 +1176,7 @@ body {
   border-radius: 8px;
   border: 1px solid var(--line);
   background: #fff;
-  font-size: 12px;
+  font-size: 18px;
   margin-bottom: 20px;
 }
 
@@ -1500,8 +1500,9 @@ body {
   min-width: 0;
   max-width: 100%;
   width: 100%;
-  padding: 0 8px;
+  padding: 0 4px;
   box-sizing: border-box;
+  font-size: 16px;
 }
 
 .dialog-place-inline {
@@ -1808,6 +1809,7 @@ body {
   color: #000;
   font-size: 16px !important;
   font-weight: 400 !important;
+  cursor: pointer;
 }
 
 #registerAccordion #itemDueDate,
