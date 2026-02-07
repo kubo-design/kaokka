@@ -263,6 +263,7 @@ const closeInlineHistories = () => {
     if (button) {
       button.innerHTML = '<span></span>';
       button.classList.add('icon-lines');
+      button.classList.remove('is-open');
     }
   });
 };
@@ -364,8 +365,9 @@ const startInlineEdit = (row, target, oldValue) => {
   input.value = oldValue;
   valueBtn.style.display = 'none';
   row.insertBefore(input, editBtn);
-  editBtn.textContent = '保存';
+  editBtn.textContent = '';
   editBtn.classList.remove('icon-lines');
+  editBtn.classList.add('is-editing');
 
   const finish = (shouldSave) => {
     if (row.dataset.editing !== 'true') return;
@@ -384,6 +386,7 @@ const startInlineEdit = (row, target, oldValue) => {
     input.remove();
     editBtn.innerHTML = '<span></span>';
     editBtn.classList.add('icon-lines');
+    editBtn.classList.remove('is-editing');
   };
 
   input.addEventListener('keydown', (event) => {
@@ -421,7 +424,8 @@ const toggleInlineHistory = (button) => {
   if (isOpen) return;
   renderInlineHistory(container, getHistoryValues(target), target);
   container.setAttribute('aria-hidden', 'false');
-  button.textContent = '閉る';
+  button.innerHTML = '<span></span>';
+  button.classList.add('is-open');
 };
 
 const resetForm = () => {
@@ -567,6 +571,7 @@ const updatePlaceFilterOptions = (items) => {
 const renderGroup = (title, items, showMap, isChecked = false, showCheckedActions = false) => {
   const group = document.createElement('div');
   group.className = 'list-group';
+  if (isChecked) group.classList.add('is-checked');
   let header = null;
   if (title && !(showMap && title === '未設定')) {
     header = document.createElement('div');
@@ -1404,7 +1409,7 @@ els.registerForm.addEventListener('submit', (event) => {
   buildHistory();
   renderList();
   resetForm();
-  setAccordionState(els.registerAccordion, false);
+  setAccordionState(els.registerAccordion, true);
   setAccordionState(els.listAccordion, true);
 });
 
@@ -1563,7 +1568,7 @@ els.itemDialog.addEventListener('click', (event) => {
     const place = els.itemDialog.querySelector('[name="editPlace"]')?.value || '';
     const dueDate = els.itemDialog.querySelector('[name="editDueDate"]')?.value || '';
     const dueTime = els.itemDialog.querySelector('[name="editDueTime"]')?.value || '';
-    const priority = els.itemDialog.querySelector('[name="editPriority"]')?.value || 'mid';
+    const priority = els.itemDialog.querySelector('[name="editPriority"]')?.value || item.priority || '';
     const url = els.itemDialog.querySelector('[name="editUrl"]')?.value || '';
     const updated = { ...item, name: name.trim(), qty, specs, place: place.trim(), dueDate, dueTime, priority, url: url.trim() };
     state.items = state.items.map((i) => (i.id === itemId ? updated : i));
