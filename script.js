@@ -17,6 +17,11 @@ let registerImages = [];
 let registerImageNames = [];
 let pendingRegisterImages = Promise.resolve();
 
+const waitForPendingImages = (timeoutMs = 2000) => Promise.race([
+  pendingRegisterImages.catch(() => undefined),
+  new Promise((resolve) => setTimeout(resolve, timeoutMs)),
+]);
+
 const recordUndoEntry = (entry) => {
   undoStack.push(entry);
   if (undoStack.length > MAX_UNDO) undoStack.shift();
@@ -444,6 +449,7 @@ const resetForm = () => {
   if (els.registerImageClear) els.registerImageClear.classList.add('is-hidden');
   const nameRow = els.registerImageClear?.closest('.image-filenames-row');
   if (nameRow) nameRow.classList.add('is-hidden');
+  pendingRegisterImages = Promise.resolve();
 };
 
 const updateDuePlaceholders = (root) => {
@@ -1013,10 +1019,13 @@ const addImagesToRegister = (files) => {
     reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   }));
-  pendingRegisterImages = pendingRegisterImages.then(() => Promise.all(readers)).then((results) => {
+  pendingRegisterImages = pendingRegisterImages
+    .then(() => Promise.all(readers))
+    .catch(() => [])
+    .then((results) => {
     const images = results.filter(Boolean);
     registerImages = [...registerImages, ...images];
-  });
+    });
 };
 
 let viewerState = {
@@ -1494,7 +1503,7 @@ if (els.historyList) {
 
 els.registerForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  await pendingRegisterImages;
+  await waitForPendingImages();
   const name = els.itemName.value.trim();
   if (!name) return;
   const specs = readSpecs();
