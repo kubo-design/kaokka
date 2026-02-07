@@ -731,7 +731,7 @@ const openDialog = (item) => {
       return `【${spec.name || '未設定'}】 ${text}${unit}`;
     })
     .join('<br>') || '未設定';
-  const truncateText = (text, max = 30) => {
+  const truncateText = (text, max = 12) => {
     if (!text) return '';
     return text.length > max ? `${text.slice(0, max)}…` : text;
   };
@@ -741,7 +741,7 @@ const openDialog = (item) => {
     .filter(Boolean);
   const urlHtml = urls.length
     ? `<div class="detail-url-list">${urls.map((u) => {
-      const display = truncateText(u, 30);
+      const display = truncateText(u, 12);
       return `<div><a href="${u}" target="_blank" rel="noopener">${display}</a></div>`;
     }).join('')}</div>`
     : '未設定';
@@ -1180,6 +1180,17 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('pointerdown', (event) => {
   const input = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  input.focus();
+  if (typeof input.showPicker === 'function') {
+    input.showPicker();
+  }
+});
+
+document.addEventListener('pointerdown', (event) => {
+  const row = event.target.closest('.name-inline, .spec-inline, .place-inline');
+  if (!row) return;
+  const input = row.querySelector('.name-history, .spec-history, .place-history');
   if (!(input instanceof HTMLInputElement)) return;
   input.focus();
   if (typeof input.showPicker === 'function') {
