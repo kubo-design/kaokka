@@ -178,12 +178,11 @@ const createSpecGroup = (index) => {
   nameInput.name = 'specName';
   nameInput.type = 'text';
   nameInput.placeholder = '例：サイズ・色';
-  const nameHistory = document.createElement('button');
-  nameHistory.type = 'button';
-  nameHistory.className = 'history-btn';
-  nameHistory.dataset.action = 'open-history';
-  nameHistory.dataset.target = 'historyDetails';
-  nameHistory.textContent = '履歴';
+  const nameHistory = document.createElement('input');
+  nameHistory.className = 'spec-history';
+  nameHistory.setAttribute('list', 'historyDetails');
+  nameHistory.id = `historyDetail-${index}`;
+  nameHistory.placeholder = '履歴';
   const nameEditBtn = document.createElement('button');
   nameEditBtn.type = 'button';
   nameEditBtn.className = 'ghost-btn';

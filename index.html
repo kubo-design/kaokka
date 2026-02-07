@@ -29,7 +29,7 @@
               <label class="field-label" for="itemName">何を</label>
               <div class="field-input name-inline">
                 <input id="itemName" name="itemName" type="text" placeholder="例：牛乳" required />
-                <button type="button" class="history-btn" data-action="open-history" data-target="historyNames">履歴</button>
+                <input class="name-history" list="historyNames" id="historyName" placeholder="履歴" inputmode="none" />
                 <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyNames"><span></span></button>
                 <select id="itemQty" name="itemQty" class="name-qty" aria-label="数量">
                   <option value="1" selected>1</option>
@@ -147,7 +147,7 @@
                   </div>
                   <div class="field-input spec-inline">
                     <input id="spec-name-1" name="specName" type="text" placeholder="例：サイズ・色" />
-                    <button type="button" class="history-btn" data-action="open-history" data-target="historyDetails">履歴</button>
+                    <input class="spec-history" list="historyDetails" id="historyDetail-1" placeholder="履歴" inputmode="none" />
                     <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyDetails"><span></span></button>
                     <select id="spec-unit-1" name="specUnit" aria-label="単位">
                       <option value="">単位</option>
@@ -176,7 +176,7 @@
               <label class="field-label" for="itemPlace">どこで</label>
               <div class="field-input place-inline">
                 <input id="itemPlace" name="itemPlace" type="text" placeholder="例：スーパー" />
-                <button type="button" class="history-btn" data-action="open-history" data-target="historyPlaces">履歴</button>
+                <input class="place-history" list="historyPlaces" id="historyPlace" placeholder="履歴" inputmode="none" />
                 <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyPlaces"><span></span></button>
               </div>
             </div>
