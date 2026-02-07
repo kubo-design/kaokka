@@ -78,7 +78,7 @@ const priorityColor = {
 const specIndexMarks = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
 const formatSpecLabel = (index) => {
   const mark = specIndexMarks[index - 1] || `(${index})`;
-  return `仕様・規格 + 内容・備考 ${mark}`;
+  return `金額・仕様・規格 + 内容・備考 ${mark}`;
 };
 
 const updateSpecLabels = () => {
@@ -543,7 +543,12 @@ const renderList = () => {
       ? sorted
       : sorted.filter((item) => (item.place || '未設定') === state.placeFilter);
     const groups = groupBy(filtered, (item) => item.place || '未設定');
-    Object.entries(groups).forEach(([key, items]) => {
+    const ordered = Object.entries(groups).sort(([a], [b]) => {
+      if (a === '未設定') return -1;
+      if (b === '未設定') return 1;
+      return a.localeCompare(b, 'ja');
+    });
+    ordered.forEach(([key, items]) => {
       renderGroup(key, items, true);
     });
   }
@@ -771,19 +776,23 @@ const renderDialogEdit = (item) => {
   const specs = (item.specs && item.specs.length) ? item.specs : [{ name: '', text: '' }];
   const specsHtml = specs.map((spec, index) => `
       <div class="dialog-spec-row" data-spec-index="${index}">
-        <input type="text" name="editSpecName" value="${spec.name || ''}" placeholder="仕様・規格" />
-        <input type="text" name="editSpecText" value="${spec.text || ''}" placeholder="内容" />
-        <select name="editSpecUnit" aria-label="単位">
-          <option value="">単位</option>
-          <option value="mm" ${spec.unit === 'mm' ? 'selected' : ''}>mm</option>
-          <option value="cm" ${spec.unit === 'cm' ? 'selected' : ''}>cm</option>
-          <option value="m" ${spec.unit === 'm' ? 'selected' : ''}>m</option>
-          <option value="W" ${spec.unit === 'W' ? 'selected' : ''}>W</option>
-          <option value="g" ${spec.unit === 'g' ? 'selected' : ''}>g</option>
-          <option value="kg" ${spec.unit === 'kg' ? 'selected' : ''}>kg</option>
-          <option value="ml" ${spec.unit === 'ml' ? 'selected' : ''}>ml</option>
-          <option value="l" ${spec.unit === 'l' ? 'selected' : ''}>l</option>
-        </select>
+        <div class="dialog-spec-top">
+          <input type="text" name="editSpecName" value="${spec.name || ''}" placeholder="仕様・規格" />
+          <select name="editSpecUnit" aria-label="単位">
+            <option value="">単位</option>
+            <option value="mm" ${spec.unit === 'mm' ? 'selected' : ''}>mm</option>
+            <option value="cm" ${spec.unit === 'cm' ? 'selected' : ''}>cm</option>
+            <option value="m" ${spec.unit === 'm' ? 'selected' : ''}>m</option>
+            <option value="W" ${spec.unit === 'W' ? 'selected' : ''}>W</option>
+            <option value="g" ${spec.unit === 'g' ? 'selected' : ''}>g</option>
+            <option value="kg" ${spec.unit === 'kg' ? 'selected' : ''}>kg</option>
+            <option value="ml" ${spec.unit === 'ml' ? 'selected' : ''}>ml</option>
+            <option value="l" ${spec.unit === 'l' ? 'selected' : ''}>l</option>
+          </select>
+        </div>
+        <div class="dialog-spec-bottom">
+          <input type="text" name="editSpecText" value="${spec.text || ''}" placeholder="内容" />
+        </div>
       </div>
     `).join('');
   undoStack.length = 0;
@@ -815,7 +824,10 @@ const renderDialogEdit = (item) => {
     </label>
     <label class="dialog-field">
       <span>どこで</span>
-      <input type="text" name="editPlace" value="${item.place || ''}" />
+      <div class="dialog-place-inline">
+        <input type="text" name="editPlace" value="${item.place || ''}" />
+        <input class="place-history dialog-place-history" list="historyPlaces" placeholder="履歴" inputmode="none" />
+      </div>
     </label>
     <label class="dialog-field">
       <span>いつまで</span>
@@ -932,6 +944,15 @@ if (els.itemDialog) {
     if (event.target === els.itemDialog) {
       els.itemDialog.close();
     }
+  });
+  els.itemDialog.addEventListener('change', (event) => {
+    const input = event.target.closest('.dialog-place-history');
+    if (!(input instanceof HTMLInputElement)) return;
+    const value = input.value.trim();
+    if (!value) return;
+    const placeInput = els.itemDialog.querySelector('[name="editPlace"]');
+    if (placeInput) placeInput.value = value;
+    input.value = '';
   });
   els.itemDialog.addEventListener('close', () => {
     if (els.imageViewer?.open) closeImageViewer();
@@ -1178,28 +1199,37 @@ document.addEventListener('click', (event) => {
   }
 });
 
-document.addEventListener('pointerdown', (event) => {
-  const input = event.target.closest('.name-history, .spec-history, .place-history');
+const openHistoryPicker = (input) => {
   if (!(input instanceof HTMLInputElement)) return;
   input.focus();
   if (typeof input.showPicker === 'function') {
     input.showPicker();
+  } else {
+    input.click();
   }
-});
+};
 
 document.addEventListener('pointerdown', (event) => {
-  const row = event.target.closest('.name-inline, .spec-inline, .place-inline');
-  if (!row) return;
-  const input = row.querySelector('.name-history, .spec-history, .place-history');
+  const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
+  if (!input) return;
+  openHistoryPicker(input);
+});
+
+document.addEventListener('click', (event) => {
+  const input = event.target.closest('.name-history, .spec-history, .place-history, .dialog-place-history');
+  if (!input) return;
+  openHistoryPicker(input);
+});
+
+document.addEventListener('focusin', (event) => {
+  const input = event.target.closest?.('.dialog-place-history');
   if (!(input instanceof HTMLInputElement)) return;
-  input.focus();
-  if (typeof input.showPicker === 'function') {
-    input.showPicker();
-  }
+  openHistoryPicker(input);
+  setTimeout(() => input.blur(), 0);
 });
 
 document.addEventListener('keydown', (event) => {
-  const input = event.target.closest?.('.name-history, .spec-history, .place-history');
+  const input = event.target.closest?.('.name-history, .spec-history, .place-history, .dialog-place-history');
   if (!(input instanceof HTMLInputElement)) return;
   event.preventDefault();
 });
@@ -1511,12 +1541,16 @@ els.listContainer.addEventListener('click', (event) => {
     const header = event.target.closest('.group-header');
     const input = header?.querySelector('.group-edit-input');
     if (!input) return;
+    const button = event.target.closest('[data-action="edit-place"]');
     const isEditing = header.classList.toggle('is-editing');
     if (isEditing) {
       input.focus();
       input.select();
-      event.target.textContent = '保存';
-      event.target.classList.remove('icon-lines');
+      if (button) {
+        button.innerHTML = '<span></span>';
+        button.classList.add('is-open');
+        button.classList.add('icon-lines');
+      }
       return;
     }
     const oldPlace = input.dataset.place || '';

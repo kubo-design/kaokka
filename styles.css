@@ -361,7 +361,7 @@ body {
   background: #f1636f;
   box-shadow: 0 10px 20px rgba(30, 27, 23, 0.15);
   cursor: pointer;
-  font-size: 18px;
+  font-size: 24px;
   color: #fff;
   font-family: Arial, Helvetica, sans-serif;
   font-variant-emoji: text;
@@ -1504,6 +1504,54 @@ body {
   box-sizing: border-box;
 }
 
+.dialog-place-inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 90px);
+  align-items: center;
+  gap: 6px;
+}
+
+.dialog-place-inline input {
+  min-width: 0;
+  width: 100%;
+}
+
+.dialog-place-history {
+  font-size: 19.5px;
+  height: var(--control-height);
+  padding: 0 10px;
+  border: 1px solid #cfd6ff;
+  border-radius: 5px;
+  color: var(--ink);
+  background: #fff;
+  font-family: inherit;
+  caret-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  background-clip: padding-box;
+  background-origin: padding-box;
+  background-position: right 8px center, right 14px center !important;
+  background-size: 7px 7px, 7px 7px !important;
+  padding-right: 22px;
+  background-color: #fff;
+  background-image: linear-gradient(45deg, transparent 50%, #000 50%),
+    linear-gradient(135deg, #000 50%, transparent 50%) !important;
+  background-position: calc(100% - 16px) 50%, calc(100% - 10px) 50% !important;
+  background-size: 7px 7px, 7px 7px !important;
+  background-repeat: no-repeat !important;
+}
+
+.dialog-place-history[list]::-webkit-calendar-picker-indicator {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-appearance: none;
+}
+
+.dialog-place-history::-webkit-list-button {
+  display: none;
+}
+
 .dialog-specs {
   display: grid;
   gap: 6px;
@@ -1511,8 +1559,17 @@ body {
 
 .dialog-spec-row {
   display: grid;
-  grid-template-columns: 1fr 1.2fr minmax(64px, 72px);
   gap: 6px;
+}
+
+.dialog-spec-top {
+  display: grid;
+  grid-template-columns: 1fr minmax(64px, 80px);
+  gap: 6px;
+}
+
+.dialog-spec-bottom input {
+  width: 100%;
 }
 
 .dialog-media {
@@ -1681,7 +1738,7 @@ body {
 
 @media (max-width: 430px) {
   .dialog-inline {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 .ghost-btn.icon-lines {
@@ -1707,6 +1764,12 @@ body {
 #itemDialog .ghost-btn.icon-lines::before,
 #itemDialog .ghost-btn.icon-lines::after,
 #itemDialog .ghost-btn.icon-lines span {
+  background: #fff;
+}
+
+#listAccordion .ghost-btn.icon-lines::before,
+#listAccordion .ghost-btn.icon-lines::after,
+#listAccordion .ghost-btn.icon-lines span {
   background: #fff;
 }
 
