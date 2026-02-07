@@ -1240,11 +1240,24 @@ document.addEventListener('pointerdown', (event) => {
     const button = row?.querySelector('[data-action="open-history"]');
     if (button) {
       event.preventDefault();
+      event.stopPropagation();
       toggleInlineHistory(button);
       return;
     }
   }
   openHistoryPicker(input);
+});
+
+els.registerForm.addEventListener('pointerdown', (event) => {
+  if (!isIOS()) return;
+  const input = event.target.closest('.name-history, .spec-history, .place-history');
+  if (!(input instanceof HTMLInputElement)) return;
+  const row = input.closest('.field-row');
+  const button = row?.querySelector('[data-action="open-history"]');
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+  toggleInlineHistory(button);
 });
 
 
