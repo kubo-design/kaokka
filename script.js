@@ -433,6 +433,7 @@ const createSpecGroup = (index) => {
   nameUnit.setAttribute('aria-label', '単位');
   nameUnit.innerHTML = `
     <option value="">単位</option>
+    <option value="円">円</option>
     <option value="mm">mm</option>
     <option value="cm">cm</option>
     <option value="m">m</option>
@@ -972,10 +973,13 @@ const openDialog = (item) => {
   if (mediaActions) mediaActions.classList.add('hidden');
   const specLine = (item.specs || [])
     .map((spec) => {
+      const name = (spec.name || '').trim();
       const text = spec.text || '未設定';
       const unit = spec.unit ? ` ${spec.unit}` : '';
-      return `【${spec.name || '未設定'}】 ${text}${unit}`;
+      const value = `${text}${unit}`;
+      return name ? `【${name}】 ${value}` : value;
     })
+    .filter(Boolean)
     .join('<br>') || '未設定';
   const truncateText = (text, max = 12) => {
     if (!text) return '';
@@ -1016,6 +1020,7 @@ const renderDialogEdit = (item) => {
           <input type="text" name="editSpecName" value="${spec.name || ''}" placeholder="仕様・規格" />
           <select name="editSpecUnit" aria-label="単位">
             <option value="">単位</option>
+            <option value="円" ${spec.unit === '円' ? 'selected' : ''}>円</option>
             <option value="mm" ${spec.unit === 'mm' ? 'selected' : ''}>mm</option>
             <option value="cm" ${spec.unit === 'cm' ? 'selected' : ''}>cm</option>
             <option value="m" ${spec.unit === 'm' ? 'selected' : ''}>m</option>
@@ -1283,14 +1288,17 @@ const openImageViewer = (src) => {
   updateViewerTransform();
 };
 
+const restoreDialogAfterImageViewer = () => {
+  if (!els.itemDialog) return;
+  els.itemDialog.classList.remove('is-hidden');
+  els.itemDialog.classList.remove('is-obscured');
+};
+
 const closeImageViewer = () => {
   if (!els.imageViewer) return;
-  els.imageViewer.close();
+  if (els.imageViewer.open) els.imageViewer.close();
   if (els.imageViewerImg) els.imageViewerImg.src = '';
-  if (els.itemDialog) {
-    els.itemDialog.classList.remove('is-hidden');
-    els.itemDialog.classList.remove('is-obscured');
-  }
+  restoreDialogAfterImageViewer();
 };
 
 const getDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -1298,6 +1306,7 @@ const getDistance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 if (els.imageViewer) {
   els.imageViewer.addEventListener('close', () => {
     if (els.imageViewerImg) els.imageViewerImg.src = '';
+    restoreDialogAfterImageViewer();
   });
   els.imageViewer.addEventListener('click', (event) => {
     if (event.target === els.imageViewer) {
