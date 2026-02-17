@@ -1703,6 +1703,10 @@ body {
   z-index: 2000;
 }
 
+.image-viewer:not([open]) {
+  display: none;
+}
+
 .image-viewer::backdrop {
   background: rgba(0, 0, 0, 0.7);
 }
