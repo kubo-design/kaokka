@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'shopping_items_v1';
+const HISTORY_STORAGE_KEY = 'shopping_history_v1';
 const IMAGE_DB_NAME = 'shopping_images_v1';
 const IMAGE_STORE_NAME = 'images';
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -7,6 +8,11 @@ const EXPIRE_ALERT_DAYS = [3, 1];
 
 const state = {
   items: [],
+  history: {
+    names: [],
+    details: [],
+    places: [],
+  },
   editId: null,
   filterScope: 'all',
   sortMode: 'due',
@@ -133,6 +139,7 @@ const els = {
   dialogTitle: document.getElementById('dialogTitle'),
   dialogContent: document.getElementById('dialogContent'),
   dialogTitleInput: document.getElementById('dialogTitleInput'),
+  dialogTitleHistoryBtn: document.getElementById('dialogTitleHistoryBtn'),
   imagePicker: document.getElementById('imagePicker'),
   filePicker: document.getElementById('filePicker'),
   cameraPicker: document.getElementById('cameraPicker'),
@@ -210,9 +217,72 @@ const loadItems = () => {
   return needsSave;
 };
 
+const normalizeHistoryValues = (values) => {
+  if (!Array.isArray(values)) return [];
+  return Array.from(new Set(
+    values
+      .map((value) => (typeof value === 'string' ? value.trim() : ''))
+      .filter(Boolean),
+  ));
+};
+
+const collectItemHistoryValues = (items = state.items) => {
+  const names = new Set();
+  const details = new Set();
+  const places = new Set();
+
+  items.forEach((item) => {
+    if (item.name) names.add(item.name);
+    (item.specs || []).forEach((spec) => {
+      if (spec.name) details.add(spec.name);
+    });
+    if (item.place) places.add(item.place);
+  });
+
+  return {
+    names: Array.from(names),
+    details: Array.from(details),
+    places: Array.from(places),
+  };
+};
+
+const mergeHistoryValues = (currentValues, nextValues) => {
+  const merged = Array.from(new Set([...currentValues, ...nextValues]));
+  return {
+    values: merged,
+    changed: merged.length !== currentValues.length,
+  };
+};
+
+const syncHistoryFromItems = () => {
+  const next = collectItemHistoryValues();
+  let changed = false;
+
+  ['names', 'details', 'places'].forEach((key) => {
+    const merged = mergeHistoryValues(state.history[key], next[key]);
+    state.history[key] = merged.values;
+    if (merged.changed) changed = true;
+  });
+
+  return changed;
+};
+
+const loadHistory = () => {
+  const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+  const parsed = raw ? JSON.parse(raw) : {};
+  state.history = {
+    names: normalizeHistoryValues(parsed.names),
+    details: normalizeHistoryValues(parsed.details),
+    places: normalizeHistoryValues(parsed.places),
+  };
+  return syncHistoryFromItems() || !raw;
+};
+
 const saveItems = () => {
   try {
+    syncHistoryFromItems();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(state.history));
     return true;
   } catch (error) {
     const name = error?.name || '';
@@ -466,25 +536,11 @@ const createSpecGroup = (index) => {
   return group;
 };
 
-const collectHistoryValues = () => {
-  const names = new Set();
-  const details = new Set();
-  const places = new Set();
-
-  state.items.forEach((item) => {
-    if (item.name) names.add(item.name);
-    (item.specs || []).forEach((spec) => {
-      if (spec.name) details.add(spec.name);
-    });
-    if (item.place) places.add(item.place);
-  });
-
-  return {
-    names: Array.from(names),
-    details: Array.from(details),
-    places: Array.from(places),
-  };
-};
+const collectHistoryValues = () => ({
+  names: Array.from(new Set([...state.history.names, ...collectItemHistoryValues().names])),
+  details: Array.from(new Set([...state.history.details, ...collectItemHistoryValues().details])),
+  places: Array.from(new Set([...state.history.places, ...collectItemHistoryValues().places])),
+});
 
 const getHistoryValues = (target) => {
   const { names, details, places } = collectHistoryValues();
@@ -558,6 +614,18 @@ const renderInlineHistory = (container, values, target) => {
 
 const updateHistoryValue = (target, oldValue, newValue) => {
   if (!newValue || oldValue === newValue) return;
+  const key = target === 'historyNames'
+    ? 'names'
+    : target === 'historyDetails'
+      ? 'details'
+      : target === 'historyPlaces'
+        ? 'places'
+        : null;
+  if (key) {
+    state.history[key] = normalizeHistoryValues(
+      state.history[key].map((value) => (value === oldValue ? newValue : value)),
+    );
+  }
   state.items = state.items.map((item) => {
     if (target === 'historyNames') {
       return item.name === oldValue ? { ...item, name: newValue } : item;
@@ -576,16 +644,19 @@ const updateHistoryValue = (target, oldValue, newValue) => {
 const removeHistoryValues = (target, values) => {
   if (!values.length) return;
   if (target === 'historyNames') {
+    state.history.names = state.history.names.filter((value) => !values.includes(value));
     const removed = state.items.filter((item) => values.includes(item.name));
     state.items = state.items.filter((item) => !values.includes(item.name));
     deleteImagesForItems(removed);
     return;
   }
   if (target === 'historyPlaces') {
+    state.history.places = state.history.places.filter((value) => !values.includes(value));
     state.items = state.items.map((item) => (values.includes(item.place) ? { ...item, place: '' } : item));
     return;
   }
   if (target === 'historyDetails') {
+    state.history.details = state.history.details.filter((value) => !values.includes(value));
     state.items = state.items.map((item) => {
       const specs = (item.specs || []).filter((spec) => !values.includes(spec.name));
       return { ...item, specs };
@@ -649,7 +720,7 @@ const startInlineEdit = (row, target, oldValue) => {
 const toggleInlineHistory = (button) => {
   const target = button.dataset.target;
   if (!target) return;
-  const row = button.closest('.field-row');
+  const row = button.closest('.field-row, .dialog-history-row');
   if (!row) return;
   let container = row.nextElementSibling;
   if (!container || !container.classList.contains('inline-history') || container.dataset.target !== target) {
@@ -961,6 +1032,7 @@ const openDialog = (item) => {
     els.dialogTitleInput.readOnly = true;
     lastValues.set(els.dialogTitleInput, els.dialogTitleInput.value);
   }
+  if (els.dialogTitleHistoryBtn) els.dialogTitleHistoryBtn.classList.add('hidden');
   const editBtn = els.itemDialog?.querySelector('[data-action="edit-item"]');
   if (editBtn) {
     editBtn.innerHTML = '<span></span>';
@@ -1017,7 +1089,10 @@ const renderDialogEdit = (item) => {
   const specsHtml = specs.map((spec, index) => `
       <div class="dialog-spec-row" data-spec-index="${index}">
         <div class="dialog-spec-top">
-          <input type="text" name="editSpecName" value="${spec.name || ''}" placeholder="仕様・規格" />
+          <div class="dialog-history-row">
+            <input type="text" name="editSpecName" value="${spec.name || ''}" placeholder="仕様・規格" />
+            <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyDetails"><span></span></button>
+          </div>
           <select name="editSpecUnit" aria-label="単位">
             <option value="">単位</option>
             <option value="円" ${spec.unit === '円' ? 'selected' : ''}>円</option>
@@ -1043,6 +1118,7 @@ const renderDialogEdit = (item) => {
     els.dialogTitleInput.readOnly = false;
     lastValues.set(els.dialogTitleInput, els.dialogTitleInput.value);
   }
+  if (els.dialogTitleHistoryBtn) els.dialogTitleHistoryBtn.classList.remove('hidden');
   const mediaActions = els.itemDialog?.querySelector('.media-actions');
   if (mediaActions) mediaActions.classList.remove('hidden');
   const currentQty = Number(item.qty) || 1;
@@ -1065,9 +1141,9 @@ const renderDialogEdit = (item) => {
     </label>
     <label class="dialog-field">
       <span>どこで</span>
-      <div class="dialog-place-inline">
+      <div class="dialog-place-inline dialog-history-row">
         <input type="text" name="editPlace" value="${item.place || ''}" />
-        <input class="place-history dialog-place-history" list="historyPlaces" placeholder="履歴" inputmode="none" />
+        <button type="button" class="ghost-btn icon-lines" data-action="open-history" data-target="historyPlaces"><span></span></button>
       </div>
     </label>
     <label class="dialog-field">
@@ -1179,6 +1255,13 @@ if (els.itemDialog) {
     const placeInput = els.itemDialog.querySelector('[name="editPlace"]');
     if (placeInput) placeInput.value = value;
     input.value = '';
+  });
+  els.itemDialog.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-action]');
+    const action = button?.dataset.action;
+    if (action !== 'open-history') return;
+    event.preventDefault();
+    toggleInlineHistory(button);
   });
   els.itemDialog.addEventListener('close', () => {
     if (els.imageViewer?.open) closeImageViewer();
@@ -1422,13 +1505,14 @@ if (els.registerImageClear) {
 
 const init = async () => {
   const needsInitSave = loadItems();
+  const historyNeedsSave = loadHistory();
   const removedChecked = pruneChecked();
   const migrated = await migrateLegacyImages();
   const removedExpired = removeExpiredItems();
   if (removedChecked.length || removedExpired.length) {
     deleteImagesForItems([...removedChecked, ...removedExpired]);
   }
-  const shouldSave = needsInitSave || migrated || removedChecked.length || removedExpired.length;
+  const shouldSave = needsInitSave || historyNeedsSave || migrated || removedChecked.length || removedExpired.length;
   if (shouldSave && !saveItems()) return;
   showExpireAlerts();
   buildHistory();
@@ -1633,16 +1717,25 @@ document.addEventListener('click', (event) => {
   const value = btn.dataset.value || '';
   const target = btn.dataset.target;
   const container = btn.closest('.inline-history');
+  const row = container?.previousElementSibling;
+  const dialogInput = row?.classList.contains('dialog-history-row')
+    ? row.querySelector('input[type="text"], textarea')
+    : null;
+  if (dialogInput) {
+    dialogInput.value = value;
+  }
   if (target === 'historyNames') {
-    els.itemName.value = value;
+    if (!dialogInput) els.itemName.value = value;
   }
   if (target === 'historyPlaces') {
-    els.itemPlace.value = value;
+    if (!dialogInput) els.itemPlace.value = value;
   }
   if (target === 'historyDetails') {
-    const group = container?.closest('[data-spec-group]');
-    const nameInput = group?.querySelector('input[name="specName"]');
-    if (nameInput) nameInput.value = value;
+    if (!dialogInput) {
+      const group = container?.closest('[data-spec-group]');
+      const nameInput = group?.querySelector('input[name="specName"]');
+      if (nameInput) nameInput.value = value;
+    }
   }
   if (container) {
     container.setAttribute('aria-hidden', 'true');

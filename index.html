@@ -14,7 +14,7 @@
       <div class="logo">
         <img class="logo-illust" src="kaokka_logo.png" alt="kaokka logo" />
       </div>
-      <div class="version">ver.1.0.8</div>
+      <div class="version">ver.1.0.9</div>
     </header>
 
     <main>
@@ -275,7 +275,10 @@
   <dialog id="itemDialog" class="item-dialog">
     <form method="dialog" class="dialog-body">
       <div class="dialog-header">
-        <input id="dialogTitleInput" class="dialog-title-input dialog-title-only" type="text" aria-label="何をを編集" />
+        <div class="dialog-title-row dialog-history-row">
+          <input id="dialogTitleInput" class="dialog-title-input dialog-title-only" type="text" aria-label="何をを編集" />
+          <button type="button" id="dialogTitleHistoryBtn" class="ghost-btn icon-lines" data-action="open-history" data-target="historyNames"><span></span></button>
+        </div>
         <button class="icon-btn" value="close">×</button>
       </div>
       <div id="dialogContent" class="dialog-content"></div>

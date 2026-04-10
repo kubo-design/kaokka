@@ -700,15 +700,15 @@ body {
   height: 0;
 }
 
-#registerAccordion .inline-history {
+.inline-history {
   padding: 0 0 10px;
 }
 
-#registerAccordion .inline-history[aria-hidden="true"] {
+.inline-history[aria-hidden="true"] {
   display: none;
 }
 
-#registerAccordion .inline-history-body {
+.inline-history-body {
   border: none;
   border-radius: 5px;
   background: #5f6fdc;
@@ -719,7 +719,7 @@ body {
 }
 
 
-#registerAccordion .inline-history-list {
+.inline-history-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -727,7 +727,7 @@ body {
   gap: 6px;
 }
 
-#registerAccordion .inline-history-row {
+.inline-history-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -735,12 +735,12 @@ body {
   padding-left: 0;
 }
 
-#registerAccordion .inline-history-check {
+.inline-history-check {
   margin: 0;
   margin-left: 0;
 }
 
-#registerAccordion .inline-history-item {
+.inline-history-item {
   text-align: left;
   border: 1px solid var(--line);
   background: #f8f6f1;
@@ -756,7 +756,7 @@ body {
   text-overflow: ellipsis;
 }
 
-#registerAccordion .inline-history-input {
+.inline-history-input {
   flex: 1;
   min-width: 0;
   padding: 6px 8px;
@@ -766,7 +766,7 @@ body {
   font-family: inherit;
 }
 
-#registerAccordion .inline-history-edit {
+.inline-history-edit {
   margin-left: auto;
   width: 28px;
   height: 28px;
@@ -781,13 +781,13 @@ body {
   position: relative;
 }
 
-#registerAccordion .inline-history-edit.is-editing {
+.inline-history-edit.is-editing {
   border-color: transparent;
   background: #000 !important;
 }
 
-#registerAccordion .inline-history-edit.is-editing::before,
-#registerAccordion .inline-history-edit.is-editing::after {
+.inline-history-edit.is-editing::before,
+.inline-history-edit.is-editing::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -799,11 +799,11 @@ body {
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-#registerAccordion .inline-history-edit.is-editing::after {
+.inline-history-edit.is-editing::after {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-#registerAccordion .inline-history-actions {
+.inline-history-actions {
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -811,7 +811,7 @@ body {
   margin-top: 10px;
 }
 
-#registerAccordion .inline-history-actions .ghost-btn {
+.inline-history-actions .ghost-btn {
   background: #fff;
   color: #000;
   border: 1px solid #fff;
@@ -821,7 +821,7 @@ body {
   font-size: 0.9em;
 }
 
-#registerAccordion .inline-history-empty {
+.inline-history-empty {
   font-size: 12px;
   color: #fff;
 }
@@ -1463,6 +1463,19 @@ body {
   overflow: auto;
 }
 
+.dialog-title-row,
+.dialog-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.dialog-title-row {
+  flex: 1;
+}
+
 .dialog-inline {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1506,14 +1519,8 @@ body {
   font-size: 16px;
 }
 
-.dialog-place-inline {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(90px, 90px);
-  align-items: center;
-  gap: 6px;
-}
-
-.dialog-place-inline input {
+.dialog-place-inline input,
+.dialog-history-row input {
   min-width: 0;
   width: 100%;
 }
@@ -1566,7 +1573,7 @@ body {
 
 .dialog-spec-top {
   display: grid;
-  grid-template-columns: 1fr minmax(64px, 80px);
+  grid-template-columns: minmax(0, 1fr) minmax(64px, 80px);
   gap: 6px;
 }
 
@@ -1872,21 +1879,26 @@ body {
 }
 
 #registerAccordion .inline-history-edit.icon-lines::before,
-#registerAccordion .inline-history-edit.icon-lines::after {
+#registerAccordion .inline-history-edit.icon-lines::after,
+#itemDialog .inline-history-edit.icon-lines::before,
+#itemDialog .inline-history-edit.icon-lines::after {
   width: 12px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-#registerAccordion .inline-history-edit.icon-lines::before {
+#registerAccordion .inline-history-edit.icon-lines::before,
+#itemDialog .inline-history-edit.icon-lines::before {
   top: 8px;
 }
 
-#registerAccordion .inline-history-edit.icon-lines::after {
+#registerAccordion .inline-history-edit.icon-lines::after,
+#itemDialog .inline-history-edit.icon-lines::after {
   bottom: 8px;
 }
 
-#registerAccordion .inline-history-edit.icon-lines span {
+#registerAccordion .inline-history-edit.icon-lines span,
+#itemDialog .inline-history-edit.icon-lines span {
   width: 12px;
   top: 50%;
   transform: translate(-50%, -50%);
