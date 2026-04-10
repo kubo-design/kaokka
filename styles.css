@@ -1389,6 +1389,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .dialog-title-wrap {
@@ -1474,6 +1475,21 @@ body {
 
 .dialog-title-row {
   flex: 1;
+}
+
+#itemDialog .dialog-header > .dialog-title-row {
+  order: 1;
+  min-width: 0;
+}
+
+#itemDialog .dialog-header > .icon-btn {
+  order: 2;
+}
+
+#itemDialog .dialog-header > .inline-history {
+  order: 3;
+  flex: 0 0 100%;
+  width: 100%;
 }
 
 .dialog-inline {
@@ -1575,6 +1591,12 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(64px, 80px);
   gap: 6px;
+}
+
+#itemDialog .dialog-spec-top > .inline-history,
+#itemDialog .dialog-field > .inline-history {
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .dialog-spec-bottom input {
