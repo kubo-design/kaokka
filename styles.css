@@ -716,6 +716,8 @@ body {
   margin-top: 10px;
   display: grid;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 
@@ -751,9 +753,12 @@ body {
   cursor: pointer;
   flex: 1;
   min-width: 0;
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: ellipsis;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.35;
 }
 
 .inline-history-input {
@@ -815,10 +820,19 @@ body {
   background: #fff;
   color: #000;
   border: 1px solid #fff;
-  padding: 0 10px;
-  height: calc(var(--control-height) * 0.8);
-  line-height: calc(var(--control-height) * 0.8);
+  padding: 8px 10px;
+  min-height: calc(var(--control-height) * 0.8);
+  height: auto;
+  line-height: 1.35;
   font-size: 0.9em;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 180px;
 }
 
 .inline-history-empty {
